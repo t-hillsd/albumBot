@@ -2,8 +2,6 @@
 
 Queries the Spotify API and posts newly released albums in a given genre to Reddit.
 
-[Example](https://asciinema.org/a/NXmZdq24CHoDIPYpWeM6Ib6Mn)
-
 # Installation
 
 1. Install python 3.8+.
