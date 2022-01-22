@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "albumBot"
+version = "0.1.0"
+description = ""
+authors = ["Tom <tom@hillsdon.net>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+praw = "^7.5.0"
+spotipy = "^2.19.0"
+rich = "^11.0.0"
+pydantic = "^1.9.0"
+python-dotenv = "^0.19.2"
+python-box = "^5.4.1"
+tinydb = "^4.6.1"
+yaspin = "^2.1.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+ipython = "^8.0.1"
+pudb = "^2022.1"
+ipdb = "^0.13.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
