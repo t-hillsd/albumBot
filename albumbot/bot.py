@@ -1,14 +1,21 @@
-from albumbot.music import spotifyReleases
-from albumbot.db import db
-from tinydb import Query
 import logging
-from albumbot.config import config
+from typing import List
+
+import praw
+from tinydb import Query
 from yaspin import yaspin
 
+from albumbot.config import Config
+from albumbot.db import DB
+from albumbot.music import spotifyReleases
+from albumbot.music.spotifyReleases import AlbumRelease
+
 log = logging.getLogger("albumBot")
+config = Config.config()
+db = DB.db()
 
 
-def get_unseen_releases():
+def get_unseen_releases() -> List[AlbumRelease]:
     unseen_releases = list(filter(is_unseen_p, spotifyReleases.get()))
     if not unseen_releases:
         log.debug("No unseen releases.")
@@ -16,14 +23,15 @@ def get_unseen_releases():
     return unseen_releases
 
 
-def is_unseen_p(release):
+def is_unseen_p(release: AlbumRelease) -> bool:
     Album = Query()
     album = db.search(Album.id == release.id)
     if not album:
         return True
+    return False
 
 
-def mark_as_processed(releases):
+def mark_as_processed(releases: List[AlbumRelease]) -> None:
     db.insert_multiple(
         [
             {
@@ -34,16 +42,23 @@ def mark_as_processed(releases):
     )
 
 
-def run(r):
-    with yaspin(color="yellow") as spinner:
+def run() -> None:
+    r = praw.Reddit(
+        client_id=config.REDDIT_ID,
+        client_secret=config.REDDIT_SECRET,
+        user_agent=config.USER_AGENT,
+        username=config.REDDIT_USER,
+        password=config.REDDIT_PASS,
+    )
+
+    with yaspin(color="yellow"):
         new = get_unseen_releases()
 
     for release in new:
-        spotifyReleases.debug_print_release(release)
-        artists = ", ".join(a.name for a in release.artists)
+        release.log()
         submission = r.subreddit(config.SUBREDDIT).submit(
-            url=release.external_urls.spotify,
-            title=f"[FRESH] {artists} - {release.name}",
+            url=release.link,
+            title=f"[FRESH] {release.artists} - {release.name}",
         )
         db.insert({"id": release.id})
         log.debug(
@@ -55,13 +70,11 @@ def run(r):
         )
 
 
-def first_run():
-    with yaspin(color="yellow") as spinner:
+def first_run() -> None:
+    with yaspin(color="yellow"):
         new = get_unseen_releases()
     for release in new:
-        spotifyReleases.debug_print_release(release)
+        release.log()
 
     mark_as_processed(new)
-    log.debug(
-        "First run detected. Posting nothing. Marking all new albums as seen to prevent future posting."
-    )
+    log.debug("First run detected. Posting nothing. Marking all new albums as seen to prevent future posting.")

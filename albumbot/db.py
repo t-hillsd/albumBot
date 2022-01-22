@@ -1,9 +1,13 @@
 from tinydb import TinyDB
-from albumbot.config import config
 
-db = None
+from albumbot.config import Config
 
 
-def setup():
-    global db
-    db = TinyDB(config.DB_PATH)
+class DB:
+    __handle = None
+
+    @staticmethod
+    def db():
+        if DB.__handle is None:
+            DB.__handle = TinyDB(Config.config().DB_PATH)
+        return DB.__handle
